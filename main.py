@@ -6,8 +6,8 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from datetime import date
-import os
-from os.path import isfile, join, splitext
+from os import makedirs, listdir
+from os.path import isfile, join, splitext, exists
 import string
 
 """ Application to generate track recommendations from Spotify based that days news.
@@ -113,14 +113,14 @@ if __name__ == "__main__":
 
                      # Make dir if not exist and save JSON to file
                      fileName = directory + "/" + date.today().strftime("%m-%d-%y") + ".json"
-                     if not os.path.exists(directory):
-                            os.makedirs(directory)
+                     if not exists(directory):
+                            makedirs(directory)
                      with open(fileName, 'w') as outfile:
                             json.dump(articles, outfile, indent=2)
 
               elif selection == '4':
                      #Gets filenames from articles directory
-                     files = [os.path.splitext(f)[0] for f in os.listdir(directory) if isfile(join(directory, f))]
+                     files = [splitext(f)[0] for f in listdir(directory) if isfile(join(directory, f))]
                      if not files:
                             print("\nThere are no previously fetched articles...")
                             print("Try fetching an article first!\n\n")
