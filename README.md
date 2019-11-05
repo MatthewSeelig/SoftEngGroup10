@@ -1,4 +1,5 @@
 # SoftEngGroup10
 Repo for our Software Engineering Module
--Added branch 1.1
--Added current working main.py
+
+Application to generate track recommendations from Spotify based that days news.
+Extract terms from news source. Use those terms to get recommended tracks from Spotify (track of the day, alternative (i.e. opposite to terms gathered), etc.
