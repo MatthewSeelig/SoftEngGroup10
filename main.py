@@ -1,4 +1,11 @@
+'''
+Errors found:
+403 Client Error: Forbidden for url
+this happened becuase of the scope used when getting token
+'''
+
 import json
+import sys
 import re
 import cmd
 import requests
@@ -9,9 +16,16 @@ from datetime import date
 from os import makedirs, listdir
 from os.path import isfile, join, splitext, exists
 import string
+import spotipy
+import spotipy.util as util
+import random
+from random import randint
+from random import seed
 
 """ Application to generate track recommendations from Spotify based that days news.
 Extract terms from news source. Use those terms to get recommended tracks from Spotify (track of the day, alternative (i.e. opposite to terms gathered), etc."""
+## test id userId = '2146txyccmklgq5mvxgrawrzy'
+
 
 # Manually-defined exceptions
 # Base class
@@ -41,18 +55,17 @@ def getArticles(location, articleAmt):
 
        # Save response as JSON
        json_data = json.loads(response.text)
-
        # Build keywords from first 5 articles
        # Filter out title and desc from each article, tokenize desc and get keywords
        # Store title, desc and keywords in JSON format
        articles = {}
        for i in range(0, articleAmt):
               headline = str(json_data['articles'][i]['title'])
+              print(headline)
               description = str(json_data['articles'][i]['description'])
-
-              if (headline.lower() == '' or headline.lower() == 'none') or (description.lower() == '' or description.lower() == 'none'):
-                     continue
-              
+              print(description)
+              ##if (headline.lower() == '' or headline.lower() == 'none') or (description.lower() == '' or description.lower() == 'none'):
+              ##      continue
               # Tokenize headline and description
               tokenizedHeadline = word_tokenize(headline.lower())
               tokenizedDesc = word_tokenize(description.lower())
@@ -69,10 +82,44 @@ def getArticles(location, articleAmt):
 
        return articles
 
+## ---- Keyword Functions ---- ##
+
+## Gets all the keywords from a file
+
+def getKeywordsFromFile(data):
+   keywords = []
+   for x in data:
+      for y in data[x]['keywords']:
+         keywords.append(y)
+   return keywords
+
+## Randomly chooses a keyword from all the keywords within the provided list of keywords
+
+def getRandomKeyword(keywords):
+   randomWordPostion = randint(0,(len(keywords)-1))
+   randomWord = keywords[randomWordPostion]
+   return randomWord
+
+## This function takes in a word and searchs for a song on spotify
+
+def searchForTrack(sp, keywords):
+   currentWord = getRandomKeyword(keywords)
+   results = sp.search(q=currentWord,limit=1, type='track')
+   for x in results:
+      if len(results[x]['items']) == 0:
+         trackId = searchForTrack(sp, keywords)
+         return trackId
+      else:
+         for y in results[x]['items']:
+            return y['id']
+
+## ---- Main Software Loop ---- ##
+
 if __name__ == "__main__":
        # Download stopwords from NLTK and get stopwords + punctuation
        nltk.download('stopwords', quiet=True)
        nltk.download('punkt', quiet=True)
+       seed(1)
        
        directory = "articles"
 
@@ -83,8 +130,16 @@ if __name__ == "__main__":
        menu['2']="Set the amount of articles (default = 5)"
        menu['3']="Get Today's articles (Title, desc, keywords)"
        menu['4']="Show previously fetched articles"
-       menu['5']="Exit"
+       menu['5']="Create Playlist"
+       menu['6']="Exit"
 
+       menuCreatePlaylist = {}
+       menuCreatePlaylist['1']="Create suggested playlist"
+       menuCreatePlaylist['2']="Create playlist based on keywords from the news -- in dev --"
+       menuCreatePlaylist['3']="Exit"
+
+       userId = sys.argv[1]
+       
        while True: 
               options=menu.keys()
               print("\n")
@@ -142,10 +197,31 @@ if __name__ == "__main__":
                             with open(fileName) as json_file:
                                    data = json.load(json_file)
                             print(json.dumps(data, indent=2))
+                            print("\nWould you like to create a playlist from the keywords in these articles?")
+                            print("\n1: Yes")
+                            print("\n2: No")
+                            userInput = input("\nPlease select: ")
+                            if userInput == '1':
+                               print('Please wait while we create your playlist...')
+                               createNewsPlaylist(userId,data,25,files[dateSelection - 1])
                             break
-                            
 
-              elif selection == '5': 
+              elif selection == '5':
+                  userChoice=menuCreatePlaylist.keys()
+                  print('\n')
+                  for entry in userChoice:
+                    print(entry, menuCreatePlaylist[entry])
+                  userSelection = input('Please select: ')
+                  if userSelection == '1':
+                     ## Create suggested playlist
+                     print('Please wait while we create your playlist...')
+                     createSuggestedPlaylist(25, userId)
+                  elif userSelection == '2':
+                     ## Create news playlist
+                     createNewsPlaylist(userId, data, 25, files[dateSelection - 1])
+                  else:
+                     print('\nUnknown option selected!\n\n')
+              elif selection == '6': 
                      break
               else: 
                      print("\nUnknown Option Selected!\n\n")
