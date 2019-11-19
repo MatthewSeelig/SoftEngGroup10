@@ -113,6 +113,25 @@ def searchForTrack(sp, keywords):
          for y in results[x]['items']:
             return y['id']
 
+## ---- Playlist Functions ---- ##
+
+## Create playlist based on selected news
+      
+def createNewsPlaylist(userId, data, numberOfSongs, date):
+   token = util.prompt_for_user_token(userId,scope='user-follow-read user-library-read user-read-private user-top-read playlist-modify-private playlist-modify-public playlist-read-collaborative user-modify-playback-state user-read-private user-library-modify user-follow-modify user-read-recently-played streaming user-read-currently-playing ',client_id='2ba5126fc467461c96850999a59925e0',client_secret='463773f5bf7b4e60b581d3d316abdde3',redirect_uri='http://google.com/')
+   sp = spotipy.Spotify(auth=token)
+   newsPlaylistTrackIds = []
+   keywords = getKeywordsFromFile(data)
+   for x in range(numberOfSongs):
+      currentTrackId = searchForTrack(sp, keywords)
+      newsPlaylistTrackIds.append(currentTrackId)
+   print(newsPlaylistTrackIds)
+   createPlaylistToken = util.prompt_for_user_token(userId, scope='playlist-modify-private playlist-modify-public',client_id='2ba5126fc467461c96850999a59925e0',client_secret='463773f5bf7b4e60b581d3d316abdde3',redirect_uri='http://google.com/')
+   createPlaylist = spotipy.Spotify(auth=createPlaylistToken)
+   playlistDescription = 'A playlist of songs based on the news on ' + date + '.'
+   playlists = createPlaylist.user_playlist_create(userId, date, public=False,description=playlistDescription)
+   newsPlaylist = sp.user_playlist_add_tracks(userId, playlists['id'], newsPlaylistTrackIds)
+
 ## ---- Main Software Loop ---- ##
 
 if __name__ == "__main__":
