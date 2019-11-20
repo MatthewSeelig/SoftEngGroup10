@@ -85,6 +85,7 @@ def getArticles(location, articleAmt):
 ## ---- Keyword Functions ---- ##
 
 ## Gets all the keywords from a file
+## Done
 
 def getKeywordsFromFile(data):
    keywords = []
