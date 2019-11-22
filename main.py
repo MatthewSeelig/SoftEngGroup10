@@ -85,7 +85,6 @@ def getArticles(location, articleAmt):
 ## ---- Keyword Functions ---- ##
 
 ## Gets all the keywords from a file
-## Done
 
 def getKeywordsFromFile(data):
    keywords = []
@@ -195,6 +194,8 @@ if __name__ == "__main__":
 
               elif selection == '4':
                      #Gets filenames from articles directory
+					 #Sprint 3 1.3 & 4
+					 #Previous days
                      files = [splitext(f)[0] for f in listdir(directory) if isfile(join(directory, f))]
                      if not files:
                             print("\nThere are no previously fetched articles...")
