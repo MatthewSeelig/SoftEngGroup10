@@ -132,6 +132,124 @@ def createNewsPlaylist(userId, data, numberOfSongs, date):
    playlists = createPlaylist.user_playlist_create(userId, date, public=False,description=playlistDescription)
    newsPlaylist = sp.user_playlist_add_tracks(userId, playlists['id'], newsPlaylistTrackIds)
    
+## ---- Suggested Feature ---- ##
+
+## Get suggested song based on track
+
+def getSuggestedSongTrack(sp, trackId):
+   seedTrack = ['spotify:track:' + trackId + '']
+   results = sp.recommendations(seed_tracks=seedTrack, limit=25)
+   randomInt = randint(0,(len(results['tracks'])-1))
+   count = 0
+   for x in results['tracks']:
+      if count == randomInt:
+         recommendedTrack = x['id']
+      count += 1
+   return recommendedTrack
+
+## Get suggested song based on artist
+
+def getSuggestedSongArtist(sp, artistId):
+   results = sp.artist_top_tracks(artistId)
+   recommendations = []
+   for x in results['tracks']:
+      trackId = x['id']
+      recommendations.append(getSuggestedSongTrack(sp, trackId))
+   randomInt = randint(0,(len(recommendations)-1))
+   count = 0
+   for x in recommendations:
+      if count == randomInt:
+         suggestedSongId = x
+      count += 1
+   return suggestedSongId
+
+## Get suggested song based on recently played
+
+def getSuggestedSongRecentlyPlayed(sp):
+   results=sp.current_user_recently_played(limit=50)
+   randomInt = randint(0,(len(results)-1))
+   count = 0
+   for x in results['items']:
+      if count == randomInt:
+         randomlySelectedTrack = x['track']['id']
+         break
+      count += 1
+   suggestedSongId = getSuggestedSongTrack(sp, randomlySelectedTrack)
+   return suggestedSongId
+
+## Get suggested song based on user top tracks
+
+def getSuggestedSongUserTopTracks(sp):
+   results=sp.current_user_top_tracks(limit=25, time_range='medium_term')
+   randomInt = randint(0,(len(results)-1))
+   count = 0
+   for x in results['items']:
+      if count == randomInt:
+         randomlySelectedTrack = x['id']
+         break
+      count += 1
+   suggestedSongId = getSuggestedSongTrack(sp, randomlySelectedTrack)
+   return suggestedSongId
+
+## Get suggested song based on saved tracks
+
+def getSuggestedSongSavedTracks(sp):
+   results=sp.current_user_saved_tracks(limit=25)
+   randomInt = randint(0,(len(results)-1))
+   count = 0
+   for x in results['items']:
+      if count == randomInt:
+         randomlySelectedTrack = x['track']['id']
+         break
+      count += 1
+   suggestedSongId = getSuggestedSongTrack(sp, randomlySelectedTrack)
+   return suggestedSongId
+
+## Get suggested song based on followed artists
+
+def getSuggestedSongFollowedArtists(sp):
+   results=sp.current_user_followed_artists(limit=20)
+   randomInt = randint(0,(len(results['artists']['items'])-1)) ## CHECK THIS ON EVERYTHING!!!!
+   count = 0
+   for x in results['artists']['items']:
+      if count == randomInt:
+         randomlySelectedArtist = x['id']
+         break
+      count += 1
+   suggestedSongId = getSuggestedSongArtist(sp, randomlySelectedArtist)
+   return suggestedSongId
+
+## Get suggested song based on top artists
+
+## Get suggested song based on saved albums
+
+## Get Suggested Song
+
+def getSuggestedSong(sp):
+   randomNum = randint(0,3)
+   if randomNum == 0:
+      trackId = getSuggestedSongRecentlyPlayed(sp)
+   elif randomNum == 1:
+      trackId = getSuggestedSongUserTopTracks(sp)
+   elif randomNum == 2:
+      trackId = getSuggestedSongSavedTracks(sp)
+   elif randomNum == 3:
+      trackId = getSuggestedSongFollowedArtists(sp)
+   return trackId
+
+## Create Suggested Playlist
+
+def createSuggestedPlaylist(numberOfSongs, userId):
+   token = util.prompt_for_user_token(userId,scope='user-follow-read user-library-read user-read-private user-top-read playlist-modify-private playlist-modify-public playlist-read-collaborative user-modify-playback-state user-read-private user-library-modify user-follow-modify user-read-recently-played streaming user-read-currently-playing ',client_id='2ba5126fc467461c96850999a59925e0',client_secret='463773f5bf7b4e60b581d3d316abdde3',redirect_uri='http://google.com/')
+   sp = spotipy.Spotify(auth=token)
+   suggestedPlaylistTrackIds = []
+   for x in range(numberOfSongs):
+      suggestedPlaylistTrackIds.append(getSuggestedSong(sp))
+   createPlaylistToken = util.prompt_for_user_token(userId, scope='playlist-modify-private playlist-modify-public',client_id='2ba5126fc467461c96850999a59925e0',client_secret='463773f5bf7b4e60b581d3d316abdde3',redirect_uri='http://google.com/')
+   createPlaylist = spotipy.Spotify(auth=createPlaylistToken)
+   playlists = createPlaylist.user_playlist_create(userId, 'Suggested Songs', public=False,description='A playlist of suggested songs based on many things')
+   suggestedPlaylist = sp.user_playlist_add_tracks(userId, playlists['id'], suggestedPlaylistTrackIds)
+
 ## ---- Main Software Loop ---- ##
 
 if __name__ == "__main__":
