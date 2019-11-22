@@ -131,7 +131,7 @@ def createNewsPlaylist(userId, data, numberOfSongs, date):
    playlistDescription = 'A playlist of songs based on the news on ' + date + '.'
    playlists = createPlaylist.user_playlist_create(userId, date, public=False,description=playlistDescription)
    newsPlaylist = sp.user_playlist_add_tracks(userId, playlists['id'], newsPlaylistTrackIds)
-
+   
 ## ---- Main Software Loop ---- ##
 
 if __name__ == "__main__":
@@ -194,8 +194,6 @@ if __name__ == "__main__":
 
               elif selection == '4':
                      #Gets filenames from articles directory
-					 #Sprint 3 1.3 & 4
-					 #Previous days
                      files = [splitext(f)[0] for f in listdir(directory) if isfile(join(directory, f))]
                      if not files:
                             print("\nThere are no previously fetched articles...")
